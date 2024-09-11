@@ -5,6 +5,7 @@ from PIL import Image
 import torchvision.transforms as transforms
 import torchvision.models as models
 from torchvision.utils import save_image
+from torch.utils.tensorboard import SummaryWriter #to print to tensorboard
 
 # Define the VGG model class to extract features from specific layers
 class VGG(nn.Module):
@@ -46,8 +47,8 @@ loader = transforms.Compose([
 ])
 
 # Load the content and style images
-original_img = load_image(r"C:\python learning\neural style transfer\results-3\result3-2.png")
-style_img = load_image(r"C:\python learning\neural style transfer\style3.webp")
+original_img = load_image(r"K:\python learning\neural style transfer\annahathaway.png")
+style_img = load_image(r"K:\python learning\neural style transfer\style3.webp")
 
 # Initialize the generated image as a copy of the content image
 generated = original_img.clone().requires_grad_(True)
@@ -63,6 +64,7 @@ beta = 0.01  # Weight for style loss
 
 # Set up the optimizer to update the generated image
 optimizer = optim.Adam([generated], lr=learning_rate)
+writer=SummaryWriter(f'runs/test/tryingout_tensorboard')
 
 # Optimization loop
 for step in range(total_steps):
@@ -100,8 +102,12 @@ for step in range(total_steps):
     optimizer.zero_grad()
     total_loss.backward()
     optimizer.step()
-
+    
+    writer.add_scalar('training loss', total_loss.item(), global_step=step)
+    # writer.add_scalar('traing accuracy,')
+    
     # Print and save the generated image at regular intervals
     if step % 200 == 0:
+        writer.add_image('Generated Image', generated.squeeze(0), global_step=step)
         print(f"Step [{step}/{total_steps}], Total Loss: {total_loss.item():.4f}")
-        save_image(generated, f"C:\\python learning\\neural style transfer\\results-3\\{step}.png")
+        # save_image(generated, f"C:\\python learning\\neural style transfer\\results-3\\{step}.png")
